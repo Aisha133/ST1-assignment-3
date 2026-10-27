@@ -2,10 +2,10 @@
 
 Complete this one group record. Link actual issues, diffs, tests and reviews; avoid copying entire histories. Blank fields are intentional. Duplicate rows as needed. Use synthetic data only. Every member records their own meaningful contribution. Do not invent results, reviews or Copilot use.
 
-- Group/tutorial: [response]
-- Members, GitHub usernames and cohorts: [response]
-- Repository URL: [response]
-- Starting SHA: [response]
+- Group/tutorial: Group 3, Tuesday 1:30pm Tutorial
+- Members, GitHub usernames and cohorts: Aisha (@Aisha133, UG); Hannah (@Hannah-448, UG); Anastasia (@Ajorja, UG); Benjamin (@Benjamin316-uc, UG)
+- Repository URL: https://github.com/Aisha133/ST1-assignment-3
+- Starting SHA: 91ed9b208925e097c3dd2877dca6a4aec3963fcb
 
 ## A Requirement to issue activities
 
