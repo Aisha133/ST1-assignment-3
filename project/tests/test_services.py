@@ -186,3 +186,127 @@ def test_find_practitioner_trims_and_is_case_sensitive():
     with pytest.raises(LookupError):
         practitioner_service.find_practitioner('d1')
 
+# ---- FR-06 / FR-07 cancellation and history (issue #1)
+
+
+def test_cancel_changes_status_to_cancelled():
+    """TEST-S6-10 / AC-05.1: cancelling gives back the same appointment,
+    now CANCELLED.
+    """
+    # Arrange
+    _, appointment_service, appointment = book_one_appointment()
+
+    # Act
+    cancelled = appointment_service.cancel_appointment('A1')
+
+    # Assert
+    assert cancelled is appointment
+    assert cancelled.status is AppointmentStatus.CANCELLED
+
+
+def test_cancelled_appointment_is_kept_in_history():
+    """TEST-S6-11 / AC-05.2: after cancelling, the appointment can still be
+    found and listed, and its details have not changed.
+    """
+    data_store, appointment_service, appointment = book_one_appointment()
+
+    appointment_service.cancel_appointment('A1')
+
+    assert appointment_service.find_appointment('A1') is appointment
+    assert data_store.list_appointments() == [appointment]
+    assert appointment.patient.patient_id == 'P1'
+    assert appointment.practitioner.practitioner_id == 'D1'
+    assert appointment.date_time == BOOKING_TIME
+
+
+def test_cancelling_twice_is_rejected():
+    """TEST-S6-12 / AC-05.3: a second cancel raises ValueError and the
+    appointment stays CANCELLED.
+    """
+    data_store, appointment_service, appointment = book_one_appointment()
+    appointment_service.cancel_appointment('A1')
+
+    with pytest.raises(ValueError):
+        appointment_service.cancel_appointment('A1')
+
+    assert appointment.status is AppointmentStatus.CANCELLED
+    assert data_store.list_appointments() == [appointment]
+
+
+def test_completed_appointment_cannot_be_cancelled():
+    """TEST-S6-13 / FR-06: only SCHEDULED can be cancelled. There is no
+    completion feature, so the COMPLETED appointment is made directly (BR-08).
+    """
+    data_store, appointment_service, first = book_one_appointment()
+    completed = Appointment(
+        'A2',
+        first.patient,
+        first.practitioner,
+        datetime(2026, 10, 1, 10, 0),
+        status=AppointmentStatus.COMPLETED,
+    )
+    data_store.add_appointment(completed)
+
+    with pytest.raises(ValueError):
+        appointment_service.cancel_appointment('A2')
+
+    assert completed.status is AppointmentStatus.COMPLETED
+
+
+def test_cancel_unknown_appointment_raises_lookup_error():
+    """TEST-S6-14: cancelling an ID that does not exist is LookupError and
+    the real appointment is untouched.
+    """
+    data_store, appointment_service, appointment = book_one_appointment()
+
+    with pytest.raises(LookupError):
+        appointment_service.cancel_appointment('A9')
+
+    assert appointment.status is AppointmentStatus.SCHEDULED
+    assert data_store.list_appointments() == [appointment]
+
+
+def test_cancel_empty_id_raises_value_error():
+    """TEST-S6-15a / ID rules: an empty ID is invalid and changes nothing."""
+    _, appointment_service, appointment = book_one_appointment()
+
+    with pytest.raises(ValueError):
+        appointment_service.cancel_appointment('')
+
+    assert appointment.status is AppointmentStatus.SCHEDULED
+
+
+def test_cancel_spaces_only_id_raises_value_error():
+    """TEST-S6-15b / ID rules: an ID of only spaces is invalid."""
+    _, appointment_service, appointment = book_one_appointment()
+
+    with pytest.raises(ValueError):
+        appointment_service.cancel_appointment('   ')
+
+    assert appointment.status is AppointmentStatus.SCHEDULED
+
+
+def test_cancel_non_text_id_raises_value_error():
+    """TEST-S6-15c / ID rules: an ID that is not a string is invalid."""
+    _, appointment_service, appointment = book_one_appointment()
+
+    with pytest.raises(ValueError):
+        appointment_service.cancel_appointment(None)
+
+    assert appointment.status is AppointmentStatus.SCHEDULED
+
+
+def test_cancelled_slot_can_be_booked_again():
+    """TEST-S6-16 / FR-05 with FR-06: a cancelled appointment no longer
+    blocks the practitioner's time, and the old record is still kept.
+    """
+    data_store, appointment_service, old_appointment = book_one_appointment()
+    appointment_service.cancel_appointment('A1')
+
+    new_appointment = appointment_service.book_appointment(
+        'A2', 'P1', 'D1', BOOKING_TIME
+    )
+
+    assert new_appointment.status is AppointmentStatus.SCHEDULED
+    assert old_appointment.status is AppointmentStatus.CANCELLED
+    assert data_store.list_appointments() == [old_appointment, new_appointment]
