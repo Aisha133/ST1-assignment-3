@@ -121,3 +121,68 @@ def test_find_patient_is_case_sensitive():
 
     with pytest.raises(LookupError):
         patient_service.find_patient('p1')
+
+# ---- FR-03 supporting practitioner lookup (issue #3)
+
+
+def test_find_practitioner_returns_the_stored_practitioner():
+    """TEST-S6-06 / FR-03: a registered ID gives back that same practitioner."""
+    _, _, practitioner_service, _ = make_services()
+    practitioner = practitioner_service.register_practitioner(
+        'D1', 'Taylor Example', 'General practice'
+    )
+
+    found = practitioner_service.find_practitioner('D1')
+
+    assert found is practitioner
+    assert found.specialty == 'General practice'
+
+
+def test_find_practitioner_unknown_id_raises_lookup_error():
+    """TEST-S6-07 / FR-03: an unregistered ID is not found, store unchanged."""
+    data_store, _, practitioner_service, _ = make_services()
+    practitioner = practitioner_service.register_practitioner(
+        'D1', 'Taylor Example', 'General practice'
+    )
+
+    with pytest.raises(LookupError):
+        practitioner_service.find_practitioner('D2')
+
+    assert data_store.list_practitioners() == [practitioner]
+
+
+def test_find_practitioner_empty_id_raises_value_error():
+    """TEST-S6-08a / ID rules: an empty ID is invalid input."""
+    _, _, practitioner_service, _ = make_services()
+
+    with pytest.raises(ValueError):
+        practitioner_service.find_practitioner('')
+
+
+def test_find_practitioner_spaces_only_id_raises_value_error():
+    """TEST-S6-08b / ID rules: an ID that is only spaces is invalid."""
+    _, _, practitioner_service, _ = make_services()
+
+    with pytest.raises(ValueError):
+        practitioner_service.find_practitioner('   ')
+
+
+def test_find_practitioner_non_text_id_raises_value_error():
+    """TEST-S6-08c / ID rules: an ID that is not a string is invalid."""
+    _, _, practitioner_service, _ = make_services()
+
+    with pytest.raises(ValueError):
+        practitioner_service.find_practitioner(None)
+
+
+def test_find_practitioner_trims_and_is_case_sensitive():
+    """TEST-S6-09 / ID rules: ' D1 ' finds D1, but 'd1' does not."""
+    _, _, practitioner_service, _ = make_services()
+    practitioner = practitioner_service.register_practitioner(
+        'D1', 'Taylor Example', 'General practice'
+    )
+
+    assert practitioner_service.find_practitioner(' D1 ') is practitioner
+    with pytest.raises(LookupError):
+        practitioner_service.find_practitioner('d1')
+
