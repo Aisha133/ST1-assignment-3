@@ -1,4 +1,4 @@
-"""Stage 6 tests for the service classes.
+"""Stage 6 and 7 tests for the service classes.
 
 Tests for patient lookup (FR-02), practitioner lookup (FR-03 supporting)
 and appointment cancellation (FR-06 and FR-07).
@@ -310,3 +310,59 @@ def test_cancelled_slot_can_be_booked_again():
     assert new_appointment.status is AppointmentStatus.SCHEDULED
     assert old_appointment.status is AppointmentStatus.CANCELLED
     assert data_store.list_appointments() == [old_appointment, new_appointment]
+
+# ---- Stage 7: registration and unknown participants (TEST-S7-07 to TEST-S7-09)
+
+
+def test_register_patient_stores_the_patient():
+    """TEST-S7-07 / AC-01.1: a valid patient with a new ID is stored and
+    can be found again.
+    """
+    data_store, patient_service, _, _ = make_services()
+
+    patient = patient_service.register_patient('P1', 'Alex Example')
+
+    assert data_store.list_patients() == [patient]
+    assert patient_service.find_patient('P1') is patient
+
+
+def test_duplicate_ids_with_spaces_do_not_overwrite():
+    """TEST-S7-08 / AC-01.2 and BR-02 boundary: ' P1 ' and ' D1 ' are the
+    same IDs as 'P1' and 'D1' once trimmed, so they are rejected and the
+    original records are kept unchanged.
+    """
+    data_store, patient_service, practitioner_service, _ = make_services()
+    patient = patient_service.register_patient('P1', 'Alex Example')
+    practitioner = practitioner_service.register_practitioner(
+        'D1', 'Taylor Example', 'General practice'
+    )
+
+    with pytest.raises(ValueError):
+        patient_service.register_patient(' P1 ', 'Someone Else')
+    with pytest.raises(ValueError):
+        practitioner_service.register_practitioner(' D1 ', 'Other', 'Other')
+
+    assert data_store.list_patients() == [patient]
+    assert patient.name == 'Alex Example'
+    assert data_store.list_practitioners() == [practitioner]
+    assert practitioner.specialty == 'General practice'
+
+
+def test_booking_unknown_patient_or_practitioner_stores_nothing():
+    """TEST-S7-09 / AC-03.2: booking with an unregistered patient or an
+    unregistered practitioner raises LookupError and stores nothing.
+    """
+    data_store, patient_service, practitioner_service, appointment_service = (
+        make_services()
+    )
+    patient_service.register_patient('P1', 'Alex Example')
+    practitioner_service.register_practitioner(
+        'D1', 'Taylor Example', 'General practice'
+    )
+
+    with pytest.raises(LookupError):
+        appointment_service.book_appointment('A1', 'P9', 'D1', BOOKING_TIME)
+    with pytest.raises(LookupError):
+        appointment_service.book_appointment('A1', 'P1', 'D9', BOOKING_TIME)
+
+    assert data_store.list_appointments() == []
