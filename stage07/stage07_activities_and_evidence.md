@@ -1,6 +1,6 @@
 # Stage 7 Testing and Verification Record
 
-Group/tutorial: [complete]  Members/cohorts: [complete]
+Group/tutorial: Group 3, Tuesday 1:30pm Tutorial  Members/cohorts: Aisha (@Aisha133, UG); Hannah (@Hannah-448, UG); Anastasia (@Ajorja, UG); Benjamin (@Benjamin316-uc, UG)
 Requirements baseline: SmartCare A3 Requirements Baseline 2026, revision 2.
 Use the same project/. Link actual evidence; keep responses concise. Blank fields are for your group. Copy rows only as needed.
 
@@ -14,34 +14,39 @@ For each requirement, propose one positive test, one negative test and the key a
 
 | Requirement | Positive test | Negative test | Key assertion |
 |---|---|---|---|
-| FR-01 Register patient | [response] | [response] | [response] |
-| FR-05 Prevent practitioner conflict | [response] | [response] | [response] |
-| FR-06 Cancel appointment | [response] | [response] | [response] |
-| FR-07 Retain cancelled history | [response] | [response] | [response] |
+| FR-01 Register patient | Register P1 "Alex Example" with a new ID; it is stored and find_patient("P1") returns it. | Register P1 again (or " P1 ") with another name; ValueError is raised. | The stored patient `is` the original object and its name is unchanged after the rejected duplicate. |
+| FR-05 Prevent practitioner conflict | Book D1 at 09:00, then book D2 at 09:00 for the same patient; both are stored. | Book D1 at 09:00, then book D1 at 09:00 again with a new ID; ValueError is raised. | After the rejection the appointment list is still just the first booking and it is still SCHEDULED. |
+| FR-06 Cancel appointment | Cancel a SCHEDULED appointment; it returns the same object, now CANCELLED. | Cancel the same appointment again, or cancel a COMPLETED one; ValueError is raised. | `status is AppointmentStatus.CANCELLED` (or stays COMPLETED) and the returned object `is` the booked one. |
+| FR-07 Retain cancelled history | After cancelling A1, find_appointment("A1") still returns it and it is still in list_appointments(). | Cancel an unknown ID A9; LookupError is raised and nothing is removed or changed. | find_appointment("A1") `is` the original object and list_appointments() still contains it with the same patient, practitioner and time. |
 
 ### Activity 2 Strong or weak assertion
 
 For each, select Strong for stated behaviour or Weak/unclear and explain why. State the behaviour and limits.
 
 `assert True`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+Judgement: Weak/unclear  Why: It is always true, so it passes even if the code is completely broken. It proves nothing about any behaviour.
 
 `assert appointment is not None`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+Judgement: Weak/unclear  Why: It only shows something came back. It does not check it is the right appointment, the right status, or that it is the stored object, so a wrong or new object would still pass.
 
 `assert appointment.status == AppointmentStatus.CANCELLED`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+Judgement: Strong for stated behaviour  Why: It checks the exact required status after cancelling (FR-06). Limit: on its own it does not prove the same object was kept in the store (FR-07); `is` would be slightly stricter than `==` for an enum.
 
 `assert len(results) > 0`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+Judgement: Weak/unclear  Why: It only shows the list is not empty. It would pass with the wrong appointments, duplicates or the wrong order, so it does not prove which items are correct.
 
 `assert data_store.find_appointment('A1') is appointment`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+Judgement: Strong for stated behaviour  Why: It checks the store returns the exact same object, which proves retained history and identity (FR-07 / AC-05.2). Limit: it does not check the status, so pair it with a status assertion.
 
 ### Activity 3 Boundary thinking
 
 Design boundary or edge cases for blank identifiers, whitespace-only names, same-time practitioner bookings, cancelled appointments and invalid status transitions.
-For each input/state, expected result and supporting contract: [response]
+For each input/state, expected result and supporting contract: 
+- Blank identifiers: patient ID "" or "   " or None at registration or lookup gives ValueError (ID rules: IDs are trimmed and non-blank); " P1 " is treated as "P1", so registering it after P1 is a duplicate (ValueError) and looking it up finds P1. "p1" is a different ID (case-sensitive), so lookup gives LookupError.
+- Whitespace-only names: Patient("P1", "   ") or a practitioner specialty "   " gives ValueError and nothing is stored (FR-01/FR-03 required name and specialty).
+- Same-time practitioner bookings: D1 at 09:00 twice gives ValueError and only the first is stored (AC-04.1); D2 at 09:00 is allowed (AC-04.2); D1 at 09:01 is allowed because the rule is exact time only, with no duration rule.
+- Cancelled appointments: a CANCELLED appointment no longer blocks D1 at 09:00, so a new booking there is allowed, and the cancelled one is still findable and listed (BR-05, FR-07).
+- Invalid status transitions: cancelling a CANCELLED or COMPLETED appointment gives ValueError and the status does not change (FR-06, BR-06); a status given as the text "scheduled" instead of the enum gives ValueError (BR-08).
 
 ### Activity 4 Critique GitHub Copilot tests
 
@@ -49,24 +54,42 @@ GitHub Copilot generates five tests, all of which pass. Two only assert that obj
 
 | Candidate | What is wrong | Rewritten test intention |
 |---|---|---|
-| 1 | [response] | [response] |
-| 2 | [response] | [response] |
-| 3 | [response] | [response] |
-| 4 | [response] | [response] |
-| 5 | [response] | [response] |
+| 1 | Only asserts the object is not None | Rewrite: assert the returned appointment `is` the stored one and has the expected status, so a wrong or new object fails. |
+| 2 | Only asserts the object is not None | Rewrite: assert the exact field values (patient, practitioner, time) and check the store contains it, so the actual requirement is checked. |
+| 3 | Asserts True, so it can never fail | Rewrite: assert a specific outcome linked to a criterion, e.g. after a rejected duplicate the original is still stored and unchanged. |
+| 4 | Assumes SMS notifications exist, which is an invented requirement (not in revision 2) | Reject; replace with a test of a real requirement, e.g. cancelling keeps the appointment retrievable (AC-05.2). |
+| 5 | Also assumes SMS notifications, an invented requirement that would need mocking a service that does not exist | Reject; replace with a real criterion, e.g. same practitioner and same time is rejected while another practitioner is allowed (AC-04.1/04.2). |
 
 ### Tutorial exit question
 
 Why can 100% code coverage coexist with poor software verification?
-[response]
+Coverage only shows which lines ran during the tests, not whether the tests checked the right result. A test can run every line and then only `assert True` or "is not None", so it passes even when the behaviour is wrong. Coverage also can't show missing requirements (a rule nobody wrote code for), wrong expectations, or untested edge cases where the code runs but the inputs were never unusual.
 
 ## B Requirement to Test Traceability Matrix
 
 Assign TEST IDs before implementation or generation. Use canonical AC IDs with their actual meaning; quote supporting revision 2 contracts when no canonical AC is assigned. Blank-ID validation is not AC-01.2. Identify supplied versus student-authored evidence.
 
-| Requirement | Acceptance criterion | Test ID | Test type | Test name / location | Expected behaviour | Result / observed status | Supplied or student-authored |
-|---|---|---|---|---|---|---|---|
-| [complete] | [complete] | [complete] | [complete] | [complete] | [complete] | [complete] | [complete] |
+| Requirement | Acceptance criterion | Test ID | Test type | Test name / location | Expected behaviour | Result / observed status                                                         | Supplied or student-authored |
+|---|---|---|---|---|---|----------------------------------------------------------------------------------|---|
+| FR-01 | AC-01.1 | TEST-S7-07 | Service | test_services.py::test_register_patient_stores_the_patient | Valid patient with new ID is stored and findable (complete service evidence) | Planned, not yet run                                                             | Student |
+| FR-01 | AC-01.2 | (supplied) | Service | test_starter.py::test_duplicate_patient_preserves_original | Duplicate "P1" rejected, original kept | Passed at 3c109e0 (30 passed)                                                    | Supplied |
+| FR-01, FR-03 | AC-01.2 boundary; BR-02 "practitioner IDs unique" | TEST-S7-08 | Service | test_services.py::test_duplicate_ids_with_spaces_do_not_overwrite | " P1 " and " D1 " rejected after trimming; originals kept unchanged | Planned, not yet run                                                             | Student |
+| FR-01, FR-03 | ID contract: "IDs are trimmed, non-blank" | TEST-S7-01 | Domain (partial evidence) | test_domain.py::test_valid_patient_and_practitioner_keep_trimmed_fields | Trimmed IDs stored; names and specialty kept | Planned, not yet run                                                             | Student |
+| FR-01, FR-03 | ID contract (blank ID); "required name" / "required specialty" | TEST-S7-02 | Domain (partial evidence) | test_domain.py::test_blank_patient_id_and_required_fields_are_rejected | Blank patient ID (reference intention), spaces-only name and specialty each ValueError | Planned, not yet run                                                             | Student |
+| FR-02 | AC-02.1, AC-02.2 | TEST-S6-01 to S6-05 | Service | test_services.py (Stage 6 patient lookup tests) | Known ID same object; unknown LookupError; blank ValueError; trimmed; case-sensitive | Passed at 3c109e0 (30 passed)                                                    | Student (Stage 6) |
+| FR-03 (supporting lookup) | "known ID returns stored practitioner" | TEST-S6-06 to S6-09 | Service | test_services.py (Stage 6 practitioner tests) | Lookup contract | Passed at 3c109e0 (30 passed)                                                    | Student (Stage 6) |
+| FR-04, FR-08 | AC-03.1, AC-06.1 | (supplied) | Service | test_starter.py::test_registration_and_booking | Stored SCHEDULED appointment linked to the registered objects (is); find_appointment returns the same object; list is exactly [appointment] | Passed at 3c109e0 (30 passed)                                                    | Supplied (already complete, so not duplicated) |
+| FR-04 | AC-03.2 | TEST-S7-09 | Service | test_services.py::test_booking_unknown_patient_or_practitioner_stores_nothing | Unknown patient and unknown practitioner each LookupError; nothing stored | Planned, not yet run                                                             | Student |
+| FR-04 | BR-04 "real Patient object"; BR-08; date/time contract | TEST-S7-03 | Domain | test_domain.py::test_invalid_appointment_inputs_are_rejected | String patient, time with seconds and text status each ValueError | Planned, not yet run                                                             | Student |
+| FR-05 | AC-04.1 | TEST-S7-10 | Service | test_services.py::test_same_practitioner_same_time_is_rejected | ValueError; only the first booking stored, still SCHEDULED | Planned, not yet run                                                             | Student |
+| FR-05 | AC-04.2; boundary "exactly the same datetime" | TEST-S7-11 | Service | test_services.py::test_other_practitioner_or_other_minute_is_allowed | D2 at the same time and D1 one minute later both stored | Planned, not yet run                                                             | Student |
+| FR-06 | AC-05.1 | TEST-S7-05; TEST-S6-10 | Domain; Service | test_domain.py::test_cancel_changes_status; test_services.py::test_cancel_changes_status_to_cancelled | SCHEDULED becomes CANCELLED | s6 test passed at 3c109e0, s7 Planned, not yet run                               | Student |
+| FR-06 | AC-05.3 | TEST-S7-06; TEST-S6-12 (strengthened) | Domain; Service | test_domain.py::test_repeated_cancellation_is_rejected; test_services.py::test_cancelling_twice_is_rejected | Second cancel ValueError, stays CANCELLED, still the same stored object | s6 test passed at 3c109e0, s7 test and strengthened s6 test Planned, not yet run | Student |
+| FR-06 | BR-06 "only SCHEDULED" | TEST-S6-13 (strengthened) | Service | test_services.py::test_completed_appointment_cannot_be_cancelled | COMPLETED cannot be cancelled; both appointments still stored | Original passed at 3c109e0 (30 passed); strengthened version planned | Student (Stage 6) |
+| FR-07 | AC-05.2 | TEST-S6-11, S6-16 | Service | test_services.py::test_cancelled_appointment_is_kept_in_history, test_cancelled_slot_can_be_booked_again | Cancelled appointment still found and listed; slot freed | Passed at 3c109e0 (30 passed)                                                    | Student (Stage 6) |
+| BR-08 | "statuses are SCHEDULED, CANCELLED, COMPLETED" | TEST-S7-04 | Domain | test_domain.py::test_new_appointment_starts_scheduled | Starts SCHEDULED with the exact objects and time | Planned, not yet run                                                             | Student |
+| BR-03 | "appointment IDs unique" | TEST-S7-12 | Service | test_services.py::test_duplicate_appointment_id_with_spaces_is_rejected | " A1 " duplicate rejected; original kept | Planned, not yet run                                                             | Student |
+| NFR-01 | "invalid operations preserve state" | TEST-S6-03b (strengthened) | Service | test_services.py::test_find_patient_spaces_only_id_raises_value_error | Store unchanged after rejected lookup | Planned, not yet run                                                             | Student |
 
 ## C Test Design
 
@@ -74,7 +97,16 @@ Use descriptive test names such as test_cancel_changes_status() or test_blank_pa
 
 | Test ID | Requirement | Acceptance criterion | Positive / Negative / Boundary | Test intention | Observable result expected | Added evidence beyond supplied tests |
 |---|---|---|---|---|---|---|
-| [complete] | [complete] | [complete] | [complete] | [complete] | [complete] | [complete] |
+| TEST-S7-08 | FR-01, FR-03 | AC-01.2; BR-02 | Boundary | Register " P1 " after P1 and " D1 " after D1 | ValueError each; both originals still stored, unchanged | Supplied tests only use exactly "P1" and "D1" |
+| TEST-S7-09 | FR-04 | AC-03.2 | Negative | Book with unknown patient P9, then unknown practitioner D9 | LookupError each time; nothing stored | Supplied test only tries an unknown patient; this adds the practitioner side |
+| TEST-S7-10 | FR-05 | AC-04.1 | Negative | Book D1 at 09:00 twice | ValueError; list is only the first; first still SCHEDULED | Supplied test checks the error only; this checks state after rejection |
+| TEST-S7-11 | FR-05 | AC-04.2; "exact datetime" | Positive / Boundary | Book D2 at the same time, then D1 at 09:01 | Both stored | Same patient twice shows no invented patient-conflict rule; 09:01 shows no invented duration rule |
+| TEST-S7-12 | FR-05 / BR-03 | "appointment IDs unique" | Boundary | Book " A1 " when A1 exists | ValueError; original time kept | Supplied test only uses exactly "A1" |
+| TEST-S7-03 | FR-04 | BR-04, BR-08, date/time contract | Negative | Create Appointment with "P1" text, 09:00:30, status "scheduled" | ValueError each | Supplied tests never try invalid appointment inputs |
+| TEST-S7-02 | FR-01 | ID contract | Negative | Patient("   ", name), then spaces-only name and specialty | ValueError each | Reference intention: blank patient ID rejected; supplied only uses "" for specialty |
+| TEST-S7-04 | FR-04 / BR-08 | Initial status | Positive | Create an Appointment | SCHEDULED with the exact objects and time | Reference intention: new appointment starts SCHEDULED |
+| TEST-S7-05 | FR-06 | AC-05.1 | Positive | Cancel a new appointment at domain level | CANCELLED | Reference intention: cancellation changes status |
+| TEST-S7-06 | FR-06 | AC-05.3 | Negative | Cancel twice at domain level | ValueError; stays CANCELLED | Reference intention: repeated cancellation rejected |
 
 ## D Arrange Act Assert Record
 
@@ -177,34 +209,34 @@ Record actual work in test design, implementation, review, traceability, diagnos
 ## N Formative Questions
 
 1. What question does verification answer?
-[response]
+Verification asks "are we building the product right?", i.e. does the code meet the stated requirements and acceptance criteria.
 
 2. What question does validation answer?
-[response]
+Validation asks "are we building the right product?", i.e. do the requirements actually meet what the clinic and its users need.
 
 3. What is a unit test?
-[response]
+A small automated test that checks one piece of behaviour of one unit (e.g. one class or method) on its own, such as Appointment.cancel() rejecting a second cancel.
 
 4. What is a pytest fixture?
-[response]
+A reusable piece of setup that pytest gives to a test (marked with @pytest.fixture), such as a fresh data store. We used plain helper functions instead, which do the same job for us.
 
 5. What is parametrisation in pytest?
-[response]
+Running the same test function several times with different inputs using @pytest.mark.parametrize, e.g. "", "   " and None as bad IDs. We did not use it, where several inputs break the same rule we check each with its own pytest.raises inside one test, which is easier for us to read.
 
 6. What is regression testing?
-[response]
+Rerunning all the existing tests after any change to check that nothing that used to work has broken. We keep every test from earlier stages for this.
 
 7. What does code coverage tell us, and what does it not prove?
-[response]
+Coverage shows which lines of code ran during the tests. It does not prove the tests checked the right results, that all requirements are tested, or that edge cases are covered.
 
 8. What makes an assertion weak?
-[response]
+An assertion is weak when it would still pass if the behaviour were wrong, e.g. assert True, "is not None", or len(x) > 0, or when it checks something unrelated to the requirement.
 
 9. What is the appropriate role of GitHub Copilot as a test assistant?
-[response]
+To suggest candidate test ideas after we have planned our own. Every candidate must be checked against the requirement and could be weak or invent requirements, so we Accept, Modify or Reject it with a reason and only trust a test after running it ourselves.
 
 10. What is the Stage 7 engineering rule?
-[response]
+Every test must trace to a requirement or contract, assert the required observable behaviour (identity, value, state or exact error), set up its own fresh data, and be run and reported honestly, keeping all earlier tests as a regression suite.
 
 ## O Stage Completion
 
