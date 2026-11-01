@@ -90,12 +90,16 @@ def test_find_patient_empty_id_raises_value_error():
 
 
 def test_find_patient_spaces_only_id_raises_value_error():
-    """TEST-S6-03b / ID rules: an ID that is only spaces is invalid."""
-    _, patient_service, _, _ = make_services()
-    patient_service.register_patient('P1', 'Alex Example')
+    """TEST-S6-03b / ID rules: an ID that is only spaces is invalid, and
+    the stored patients are unchanged (NFR-01, from the Stage 6 review).
+    """
+    data_store, patient_service, _, _ = make_services()
+    patient = patient_service.register_patient('P1', 'Alex Example')
 
     with pytest.raises(ValueError):
         patient_service.find_patient('   ')
+
+    assert data_store.list_patients() == [patient]
 
 
 def test_find_patient_non_text_id_raises_value_error():
@@ -230,6 +234,7 @@ def test_cancelling_twice_is_rejected():
         appointment_service.cancel_appointment('A1')
 
     assert appointment.status is AppointmentStatus.CANCELLED
+    assert appointment_service.find_appointment('A1') is appointment
     assert data_store.list_appointments() == [appointment]
 
 
@@ -251,6 +256,7 @@ def test_completed_appointment_cannot_be_cancelled():
         appointment_service.cancel_appointment('A2')
 
     assert completed.status is AppointmentStatus.COMPLETED
+    assert data_store.list_appointments() == [first, completed]
 
 
 def test_cancel_unknown_appointment_raises_lookup_error():
@@ -366,3 +372,56 @@ def test_booking_unknown_patient_or_practitioner_stores_nothing():
         appointment_service.book_appointment('A1', 'P1', 'D9', BOOKING_TIME)
 
     assert data_store.list_appointments() == []
+
+# ---- Stage 7: conflicts and boundaries (TEST-S7-10 to TEST-S7-12)
+
+
+def test_same_practitioner_same_time_is_rejected():
+    """TEST-S7-10 / AC-04.1: the same practitioner cannot have two
+    SCHEDULED appointments at exactly the same time. The first booking is
+    kept and nothing else is stored.
+    """
+    data_store, appointment_service, first = book_one_appointment()
+
+    with pytest.raises(ValueError):
+        appointment_service.book_appointment('A2', 'P1', 'D1', BOOKING_TIME)
+
+    assert data_store.list_appointments() == [first]
+    assert first.status is AppointmentStatus.SCHEDULED
+
+
+def test_other_practitioner_or_other_minute_is_allowed():
+    """TEST-S7-11 / AC-04.2 and FR-05 boundary: only the SAME practitioner
+    at EXACTLY the same time conflicts. Another practitioner at that time,
+    or the same practitioner one minute later, can both be booked.
+    """
+    data_store, appointment_service, first = book_one_appointment()
+    PractitionerService(data_store).register_practitioner(
+        'D2', 'Morgan Example', 'General practice'
+    )
+
+    other_practitioner = appointment_service.book_appointment(
+        'A2', 'P1', 'D2', BOOKING_TIME
+    )
+    one_minute_later = appointment_service.book_appointment(
+        'A3', 'P1', 'D1', datetime(2026, 10, 1, 9, 1)
+    )
+
+    assert data_store.list_appointments() == [
+        first, other_practitioner, one_minute_later
+    ]
+
+
+def test_duplicate_appointment_id_with_spaces_is_rejected():
+    """TEST-S7-12 / BR-03 boundary: ' A1 ' duplicates 'A1'; the original
+    appointment and its time are kept.
+    """
+    data_store, appointment_service, original = book_one_appointment()
+
+    with pytest.raises(ValueError):
+        appointment_service.book_appointment(
+            ' A1 ', 'P1', 'D1', datetime(2026, 10, 1, 10, 0)
+        )
+
+    assert data_store.list_appointments() == [original]
+    assert original.date_time == BOOKING_TIME
