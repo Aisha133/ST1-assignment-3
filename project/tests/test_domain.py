@@ -74,3 +74,41 @@ def test_invalid_appointment_inputs_are_rejected():
         )
     with pytest.raises(ValueError):
         Appointment('A1', patient, practitioner, BOOKING_TIME, status='scheduled')
+
+# ---- Appointment status and cancellation (TEST-S7-04 to TEST-S7-06)
+
+
+def test_new_appointment_starts_scheduled():
+    """TEST-S7-04 / BR-08: a new appointment starts as SCHEDULED and keeps
+    the exact patient, practitioner and time it was given.
+    """
+    patient, practitioner, appointment = make_appointment()
+
+    assert appointment.status is AppointmentStatus.SCHEDULED
+    assert appointment.patient is patient
+    assert appointment.practitioner is practitioner
+    assert appointment.date_time == BOOKING_TIME
+
+
+def test_cancel_changes_status():
+    """TEST-S7-05 / FR-06: cancelling a SCHEDULED appointment makes it
+    CANCELLED.
+    """
+    _, _, appointment = make_appointment()
+
+    appointment.cancel()
+
+    assert appointment.status is AppointmentStatus.CANCELLED
+
+
+def test_repeated_cancellation_is_rejected():
+    """TEST-S7-06 / FR-06, BR-06: cancelling twice raises ValueError and
+    the status stays CANCELLED.
+    """
+    _, _, appointment = make_appointment()
+    appointment.cancel()
+
+    with pytest.raises(ValueError):
+        appointment.cancel()
+
+    assert appointment.status is AppointmentStatus.CANCELLED
