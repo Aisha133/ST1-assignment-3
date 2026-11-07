@@ -8,10 +8,10 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
 - Group and tutorial: Group 3, Tuesday 1:30pm Tutorial 
 - Member names, GitHub usernames and UG/PG cohorts: Aisha (@Aisha133, UG); Hannah (@Hannah-448, UG); Anastasia (@Ajorja, UG); Benjamin (@Benjamin316-uc, UG)
 - Shared repository URL: https://github.com/Aisha133/ST1-assignment-3
-- Latest completed stage: Stage 7
-- Verified code SHA: b05cc735f8d5758046f0da8633caed7a5b05f86b
-- Test command, working directory and observed result: python -m pytest, project/, 42 passed (8 supplied + 22 Stage 6 + 12 Stage 7 tests; Python 3.14.7, pytest 8.3.5)
-- Final submitted SHA, if different from tested code SHA: The later commit "Complete Stage 7 testing evidence record". It is evidence-only: it changes only this README and the Stage 7 record, with no code or test changes after the verified code SHA.
+- Latest completed stage: Stage 8 
+- Verified code SHA: bb8d8257bfe18aac918d721f5c048efe40aa9749 (Stage 8, merge of PR #11)
+- Test command, working directory and observed result: python -m pytest, project/, 44 passed (8 supplied + 28 Stage 6/7 service + 6 Stage 7 domain + 2 Stage 8 regression tests; Python 3.14.7, pytest 8.3.5)
+- Final submitted SHA, if different from tested code SHA: The later commit "Complete Stage 8 evidence record". It is evidence-only: it changes only this README and the Stage 8 record, with no code or test changes after the verified code SHA.
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 
