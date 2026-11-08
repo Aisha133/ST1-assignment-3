@@ -6,12 +6,12 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
 ## Group index
 
 - Group and tutorial: Group 3, Tuesday 1:30pm Tutorial 
-- Member names, GitHub usernames and UG/PG cohorts: Aisha (@Aisha133, UG); Hannah (@Hannah-448, UG); Anastasia (@Ajorja, UG); Benjamin (@Benjamin316-uc, UG)
+- Member names, GitHub usernames and UG/PG cohorts: Aisha (@Aisha133, UG); Hannah (@Hannah-448, UG); Anastasia (@AJorja, UG); Benjamin (@Benjamin316-uc, UG)
 - Shared repository URL: https://github.com/Aisha133/ST1-assignment-3
-- Latest completed stage: Stage 8 
-- Verified code SHA: bb8d8257bfe18aac918d721f5c048efe40aa9749 (Stage 8, merge of PR #11)
-- Test command, working directory and observed result: python -m pytest, project/, 44 passed (8 supplied + 28 Stage 6/7 service + 6 Stage 7 domain + 2 Stage 8 regression tests; Python 3.14.7, pytest 8.3.5)
-- Final submitted SHA, if different from tested code SHA: The later commit "Complete Stage 8 evidence record". It is evidence-only: it changes only this README and the Stage 8 record, with no code or test changes after the verified code SHA.
+- Latest completed stage: Stage 9 (Stage 12 release in progress)
+- Verified code SHA: 6f4df006ff4c7bf86f58567b33d9deb32c1f6d12 (Stage 9, merge of PR #16)
+- Test command, working directory and observed result: python -m pytest -q, project/, 57 passed (supplied, Stage 6/7 service and domain, Stage 8 regression and 13 Stage 9 query/workflow/console tests; Python 3.14.7, pytest 8.3.5)
+- Final submitted SHA, if different from tested code SHA: the later commit "Stage 9 record: verification, console evidence, Copilot decisions, reflections, formative answers and handover (C–H)" (ea0f2fe). It is evidence-only: it changes only the Stage 9 record, with no code or test changes after the verified code SHA.
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 
