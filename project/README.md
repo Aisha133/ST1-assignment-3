@@ -2,6 +2,30 @@
 
 Requirements baseline: SmartCare A3 2026 revision 2. Runtime uses only the Python standard library; tests use pytest 8.3.5 (verified on Python 3.14.7).
 
+Release: **SmartCare v1.0**, UG common scope. The exact release SHA is recorded in `stage12/stage12_activities_and_evidence.md` (section K).
+
+## Purpose
+
+SmartCare is a small console application for a clinic's front desk. It registers patients and practitioners, books appointments without double-booking a practitioner, cancels appointments while keeping their history, and lists a practitioner's appointments by status and time. It is a teaching release built over Stages 6–9 and released in Stage 12. It is not production healthcare software.
+
+## Included in this release
+
+- FR-01–FR-09: register/find patients and practitioners; book with validation and the practitioner conflict rule; cancel and keep history; find appointments; list a practitioner's appointments.
+- QRY-01–04 and FP-01–03: a pure, explicit-input query (`select_appointments`) with a named sort key (`appointment_sort_key`).
+- UI-01/UI-02: an interactive menu that reports invalid input and keeps running.
+- Not included: FR-10 restart persistence (retired), and PG-only rescheduling/assurance (Stages 10–11; this is an all-UG group).
+
+## Environment
+
+The course's verified baseline is Python 3.13 with pytest 8.3.5. This release was verified on Python 3.14.7 with pytest 8.3.5. The application uses only the standard library; pytest is the only development dependency (pinned in `requirements-dev.txt`).
+
+From the repository root, create and activate a virtual environment, then:
+
+```sh
+cd project
+python -m pip install -r requirements-dev.txt
+```
+
 ## Run commands
 
 Run everything from this `project/` directory:
@@ -11,8 +35,6 @@ python main.py                  # short supplied demo
 python main.py --interactive    # interactive menu
 python -m pytest -q             # full test suite
 ```
-
-If needed: `python -m pip install -r requirements-dev.txt`.
 
 ## Verification
 
@@ -37,7 +59,8 @@ Invalid input (unknown or blank IDs, duplicates, unknown participants, malformed
 - Cancelling keeps the appointment (status CANCELLED) so it can still be found and listed; nothing is deleted.
 - Conflict rule: only the same practitioner at exactly the same date/time with a SCHEDULED appointment conflicts. There are no duration, patient-conflict or past-date rules.
 - There is no feature to mark an appointment COMPLETED; that status is only created directly in tests.
-- Synthetic data only.
+- Synthetic data only. Times are local, naive and minute-precision, with no timezone policy.
+- Out of scope: authentication/roles, patient portal, SMS/email notifications, billing/insurance, clinical decision support, multi-user concurrency or scale, operations/monitoring, and formal usability/accessibility evaluation. Passing tests do not imply production, clinical or security certification.
 
 ## Behaviour notes
 
@@ -47,6 +70,20 @@ Invalid input (unknown or blank IDs, duplicates, unknown participants, malformed
 - Booking takes a local `datetime` at minute precision; the console accepts exactly `YYYY-MM-DD HH:MM`.
 - Lists (including practitioner listings) are new lists holding the actual stored objects.
 
+## Responsible AI use
+
+GitHub Copilot was used as a reviewer in Stages 6–9; each suggestion was checked against code, requirements and tests and recorded as Accept/Modify/Reject in the stage records (for example, `stage09/evidence/copilot_review.md` and record E). It helped to draft areas as well as to record certain pieces of information. All code was run and tested by the group with a running log of work.
+
+## Synthetic data rule
+
+Use made-up names and IDs only (for example P1 Alex Example, D1 Taylor Example). Never enter real patient information.
+
 ## Structure
 
-`domain.py` entities and guarded cancellation; `data_store.py` the shared session store; `services.py` registration, lookup, booking, cancellation and practitioner listing; `queries.py` pure selection and sorting (`select_appointments`, `appointment_sort_key`); `console.py` the menu, date parser and appointment formatter; `main.py` chooses demo or menu.
+- `smartcare/domain.py`: Patient, Practitioner, Appointment and AppointmentStatus; entities validate their own fields, and Appointment guards cancellation.
+- `smartcare/data_store.py`: SmartCareDataStore, the one shared in-memory store for the current session (add/find/list).
+- `smartcare/services.py`: PatientService, PractitionerService and AppointmentService coordinate use cases, including the practitioner conflict check against the shared store and practitioner listing.
+- `smartcare/queries.py`: pure functions `select_appointments` and `appointment_sort_key`, with explicit inputs and no state.
+- `smartcare/console.py`: the interactive menu, date/status parsing and output; the only place that reads input or prints.
+- `main.py`: runs the short demo, or the menu with `--interactive`.
+- `tests/`: pytest tests for the domain, services, Stage 8 regressions, queries, workflows and console.
