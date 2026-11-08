@@ -19,12 +19,17 @@ SmartCare is a small console application for a clinic's front desk. It registers
 
 The course's verified baseline is Python 3.13 with pytest 8.3.5. This release was verified on Python 3.14.7 with pytest 8.3.5. The application uses only the standard library; pytest is the only development dependency (pinned in `requirements-dev.txt`).
 
-From the repository root, create and activate a virtual environment, then:
+From the repository root, create and activate a virtual environment, then install the dependency:
 
 ```sh
+python -m venv .venv
+.venv\Scripts\Activate.ps1      # Windows PowerShell
+source .venv/bin/activate       # macOS/Linux (use python3 if python is not found)
 cd project
 python -m pip install -r requirements-dev.txt
 ```
+
+Run only the activate line for your system. If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope Process Bypass` first.
 
 ## Run commands
 
@@ -72,7 +77,7 @@ Invalid input (unknown or blank IDs, duplicates, unknown participants, malformed
 
 ## Responsible AI use
 
-GitHub Copilot was used as a reviewer in Stages 6–9; each suggestion was checked against code, requirements and tests and recorded as Accept/Modify/Reject in the stage records (for example, `stage09/evidence/copilot_review.md` and record E). It helped to draft areas as well as to record certain pieces of information. All code was run and tested by the group with a running log of work.
+GitHub Copilot was used in Stages 6–9 to review code and tests, and in Stage 8 to suggest debugging hypotheses after the team had written its own, which were then compared and checked against the evidence; each suggestion was checked against code, requirements and tests and recorded as Accept/Modify/Reject in the stage records (for example, `stage09/evidence/copilot_review.md` and record E). It helped to draft areas as well as to record certain pieces of information. All code was run and tested by the group with a running log of work.
 
 ## Synthetic data rule
 
