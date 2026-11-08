@@ -84,3 +84,34 @@ def test_listing_keeps_history_and_uses_the_registered_id():
     ) == []
     assert appointments.find_appointment('A1') is a1
     assert data_store.list_appointments() == [a1]
+
+# ---- Integrated workflow (TEST-S9-10)
+
+
+def test_full_booking_workflow_through_the_services():
+    """TEST-S9-10 / UI-01 sequence via services: conflict rejected with no
+    change, other practitioner allowed, cancel keeps history, filter works,
+    freed slot can be rebooked, and a failed booking does not use its ID.
+    """
+    data_store, patients, _, appointments = make_services()
+    a1 = appointments.book_appointment('A1', 'P1', 'D1', NINE)
+
+    with pytest.raises(ValueError):
+        appointments.book_appointment('A9', 'P1', 'D1', NINE)
+    assert data_store.list_appointments() == [a1]
+    with pytest.raises(LookupError):
+        appointments.book_appointment('A9', 'P9', 'D1', NINE)
+    assert data_store.list_appointments() == [a1]
+
+    a2 = appointments.book_appointment('A2', 'P1', 'D2', NINE)
+    appointments.cancel_appointment('A1')
+    assert appointments.find_appointment('A1').status is AppointmentStatus.CANCELLED
+    assert appointments.list_practitioner_appointments('D1') == [a1]
+
+    a3 = appointments.book_appointment('A3', 'P1', 'D1', NINE)
+    assert appointments.list_practitioner_appointments('D1') == [a1, a3]
+    assert appointments.list_practitioner_appointments(
+        'D1', AppointmentStatus.SCHEDULED
+    ) == [a3]
+    a9 = appointments.book_appointment('A9', 'P1', 'D1', datetime(2026, 10, 1, 11, 0))
+    assert data_store.list_appointments() == [a1, a2, a3, a9]
