@@ -8,7 +8,7 @@ from datetime import datetime
 
 import pytest
 
-from smartcare.console import run_menu
+from smartcare.console import parse_status, run_menu
 from smartcare.data_store import SmartCareDataStore
 from smartcare.domain import AppointmentStatus
 from smartcare.services import (
@@ -210,3 +210,16 @@ def test_console_ui02_recovers_from_bad_input(monkeypatch, capsys):
     assert 'Error: Status must be scheduled, cancelled or completed' in output
     assert output.rstrip().endswith('Goodbye. Session data discarded.')
     assert 'Patient found. P1: Alex Example' in output.split('Status must be')[-1]
+
+def test_parse_status_accepts_every_status_and_blank():
+       """TEST-S9-13 / UI-02, QRY-02: the console's text-to-enum conversion
+       ignores spaces and case, accepts all three statuses, treats blank as
+       every status and rejects anything else (added after Copilot review).
+       """
+       assert parse_status('') is None
+       assert parse_status('   ') is None
+       assert parse_status(' Scheduled ') is AppointmentStatus.SCHEDULED
+       assert parse_status('CANCELLED') is AppointmentStatus.CANCELLED
+       assert parse_status('completed') is AppointmentStatus.COMPLETED
+       with pytest.raises(ValueError):
+           parse_status('pending')
