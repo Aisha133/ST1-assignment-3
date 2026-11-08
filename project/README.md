@@ -1,20 +1,48 @@
-# SmartCare Stage 6 starter
+# SmartCare (Group 3, Assignment 3)
 
-Requirements baseline: SmartCare A3 2026 revision 2. Python 3.13 and pytest 8.3.5 verified. Runtime uses only the standard library.
+Requirements baseline: SmartCare A3 2026 revision 2. Runtime uses only the Python standard library; tests use pytest 8.3.5 (verified on Python 3.14.7).
 
-From this directory, using a Python environment with the development dependency installed:
+## Run commands
+
+Run everything from this `project/` directory:
 
 ```sh
-python main.py
-python -m pytest
+python main.py                  # short supplied demo
+python main.py --interactive    # interactive menu
+python -m pytest -q             # full test suite
 ```
 
-If needed in your approved environment: `python -m pip install -r requirements-dev.txt`.
+If needed: `python -m pip install -r requirements-dev.txt`.
 
-The demo registers synthetic records and books/finds an appointment. All supplied tests pass. Data exists only in this session and is lost on exit; FR-10 restart persistence is retired. Use synthetic information only.
+## Interactive menu
 
-`domain.py` contains the entities, status and guarded cancellation. `data_store.py` holds three dictionaries through add/find/list methods. The three services share that object. Supplied registration, booking, appointment lookup and conflict checking work. IDs are trimmed, non-blank and case-sensitive. Properties provide read-only identity/appointment state; changes go through domain methods. No special architecture terminology is required.
+| Option | Action | Input |
+|---|---|---|
+| 1 / 2 | Register patient / find patient | patient ID, name / patient ID |
+| 3 / 4 | Register practitioner / find practitioner | practitioner ID, name, specialty / practitioner ID |
+| 5 | Book appointment | appointment ID, patient ID, practitioner ID, date/time `YYYY-MM-DD HH:MM` |
+| 6 / 7 | Cancel appointment / find appointment | appointment ID |
+| 8 | List a practitioner's appointments | practitioner ID; status blank for all, or `scheduled` / `cancelled` / `completed` |
+| 0 | Exit | session data is discarded |
 
-Stage 6 TODOs: service patient/practitioner lookup and cancellation. Stage 9 TODOs: pure query, named sort key, service listing and interactive menu. The starter TODO contracts are in docstrings. All three Stage 6 TODO calls deliberately raise NotImplementedError; future TODOs remain stubs. No PG rescheduling or assurance solution is supplied.
+Invalid input (unknown or blank IDs, duplicates, unknown participants, malformed or impossible dates, conflicts, repeated cancellation, invalid status, unknown option) is reported as an error and the menu continues without changing stored records.
 
-Service booking accepts IDs and a `datetime` (local, minute precision). Console parser accepts exactly `YYYY-MM-DD HH:MM`. Store lookups return None when absent; service lookups raise LookupError. Invalid values, duplicates, conflicts and illegal transitions raise ValueError. Lists are new containers holding the stored objects. No age, duration, patient-conflict or past-date rules apply.
+## Scope and limitations
+
+- Data exists only for the current session and is lost on exit; a new run starts empty. Restart persistence (FR-10) is retired, so there is no file or database storage.
+- Cancelling keeps the appointment (status CANCELLED) so it can still be found and listed; nothing is deleted.
+- Conflict rule: only the same practitioner at exactly the same date/time with a SCHEDULED appointment conflicts. There are no duration, patient-conflict or past-date rules.
+- There is no feature to mark an appointment COMPLETED; that status is only created directly in tests.
+- Synthetic data only.
+
+## Behaviour notes
+
+- IDs are trimmed, must not be blank, and are case-sensitive (`D1` and `d1` are different).
+- Store lookups return None when a record is absent; service lookups raise LookupError.
+- Invalid values, duplicate IDs, practitioner conflicts and illegal status changes raise ValueError.
+- Booking takes a local `datetime` at minute precision; the console accepts exactly `YYYY-MM-DD HH:MM`.
+- Lists (including practitioner listings) are new lists holding the actual stored objects.
+
+## Structure
+
+`domain.py` entities and guarded cancellation; `data_store.py` the shared session store; `services.py` registration, lookup, booking, cancellation and practitioner listing; `queries.py` pure selection and sorting (`select_appointments`, `appointment_sort_key`); `console.py` the menu, date parser and appointment formatter; `main.py` chooses demo or menu.
