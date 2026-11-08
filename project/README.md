@@ -14,6 +14,10 @@ python -m pytest -q             # full test suite
 
 If needed: `python -m pip install -r requirements-dev.txt`.
 
+## Verification
+
+Last verified on 08/11/2026 (Windows, Python 3.14.7, pytest 8.3.5), from this `project/` directory: `python -m pytest -q` gave 57 passed (Stage 6–8 tests plus TEST-S9-01..13). Console demonstration inputs and outputs for UI-01 and UI-02 are in `stage09/evidence/`.
+
 ## Interactive menu
 
 | Option | Action | Input |
