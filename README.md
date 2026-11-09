@@ -8,10 +8,10 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
 - Group and tutorial: Group 3, Tuesday 1:30pm Tutorial 
 - Member names, GitHub usernames and UG/PG cohorts: Aisha (@Aisha133, UG); Hannah (@Hannah-448, UG); Anastasia (@AJorja, UG); Benjamin (@Benjamin316-uc, UG)
 - Shared repository URL: https://github.com/Aisha133/ST1-assignment-3
-- Latest completed stage: Stage 9 (Stage 12 release in progress)
-- Verified code SHA: 6f4df006ff4c7bf86f58567b33d9deb32c1f6d12 (Stage 9, merge of PR #16)
-- Test command, working directory and observed result: python -m pytest -q, project/, 57 passed (supplied, Stage 6/7 service and domain, Stage 8 regression and 13 Stage 9 query/workflow/console tests; Python 3.14.7, pytest 8.3.5)
-- Final submitted SHA, if different from tested code SHA: the later commit "Stage 9 record: verification, console evidence, Copilot decisions, reflections, formative answers and handover (C–H)" (ea0f2fe). It is evidence-only: it changes only the Stage 9 record, with no code or test changes after the verified code SHA.
+- Latest completed stage: Stage 12 (release SmartCare v1.0, UG common scope)
+- Verified code SHA: 82c9ad67ab5a99e8147353e281953368ede10f31 (Stage 12 release candidate, merge of PR #18). Protected common Stage 9 SHA: 6f4df006ff4c7bf86f58567b33d9deb32c1f6d12 (merge of PR #16)
+- Test command, working directory and observed result: python -m pytest -q, project/, 57 passed at 82c9ad6 (Python 3.14.7, pytest 8.3.5); fresh-copy check by Benjamin on Windows with Python 3.11.4: 57 passed (Stage 12 record, section F)
+- Final submitted SHA, if different from tested code SHA: the evidence-only commit "Complete Stage 12 release record", tagged v1.0 (full SHA on the v1.0 GitHub Release page). It changes only the Stage 12 record, stage12/evidence/ and this README index, with no code or test changes after 82c9ad6.
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 

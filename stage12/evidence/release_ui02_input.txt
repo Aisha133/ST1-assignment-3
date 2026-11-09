@@ -1,0 +1,47 @@
+99
+2
+P9
+2
+
+1
+P1
+Alex Example
+1
+P1
+Someone Else
+3
+D1
+Taylor Example
+General practice
+5
+A1
+P9
+D1
+2026-10-01 09:00
+5
+A1
+P1
+D1
+not a date
+5
+A1
+P1
+D1
+2026-02-30 09:00
+7
+UNKNOWN
+5
+A1
+P1
+D1
+2026-10-01 09:00
+6
+A1
+6
+A1
+8
+D1
+pending
+2
+P1
+0

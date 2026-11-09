@@ -1,0 +1,97 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+PS C:\Users\Benjamin> git --version
+git version 2.55.0.windows.5
+PS C:\Users\Benjamin> python --version
+Python 3.11.4
+PS C:\Users\Benjamin> cd $HOME\Desktop
+PS C:\Users\Benjamin\Desktop> git clone https://github.com/Aisha133/ST1-assignment-3.git smartcare-check
+Cloning into 'smartcare-check'...
+remote: Enumerating objects: 216, done.
+remote: Counting objects: 100% (216/216), done.
+remote: Compressing objects: 100% (163/163), done.
+remote: Total 216 (delta 120), reused 144 (delta 51), pack-reused 0 (from 0)
+Receiving objects: 100% (216/216), 111.42 KiB | 2.53 MiB/s, done.
+Resolving deltas: 100% (120/120), done.
+PS C:\Users\Benjamin\Desktop> cd smartcare-check
+PS C:\Users\Benjamin\Desktop\smartcare-check> git rev-parse HEAD
+82c9ad67ab5a99e8147353e281953368ede10f31
+PS C:\Users\Benjamin\Desktop\smartcare-check> smartcare-check\project\README.md
+smartcare-check\project\README.md : The module
+'smartcare-check' could not be loaded. For more information,
+run 'Import-Module smartcare-check'.
+At line:1 char:1
++ smartcare-check\project\README.md
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (smartcare-check
+   \project\README.md:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CouldNotAutoLoadModule
+
+PS C:\Users\Benjamin\Desktop\smartcare-check> notepad project\README.md
+PS C:\Users\Benjamin\Desktop\smartcare-check> python -m venv .venv
+PS C:\Users\Benjamin\Desktop\smartcare-check> git rev-parse HEAD
+82c9ad67ab5a99e8147353e281953368ede10f31
+PS C:\Users\Benjamin\Desktop\smartcare-check>
+>>
+PS C:\Users\Benjamin\Desktop\smartcare-check> .venv\Scripts\Activate.ps1
+.venv\Scripts\Activate.ps1 : File
+C:\Users\Benjamin\Desktop\smartcare-check\.venv\Scripts\Activate.ps1 cannot be
+loaded because running scripts is disabled on this system. For more information,
+see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.
+At line:1 char:1
++ .venv\Scripts\Activate.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\Benjamin\Desktop\smartcare-check> Set-ExecutionPolicy -Scope Process Bypass
+PS C:\Users\Benjamin\Desktop\smartcare-check> .venv\Scripts\Activate.ps1
+(.venv) PS C:\Users\Benjamin\Desktop\smartcare-check> python --version
+Python 3.11.4
+(.venv) PS C:\Users\Benjamin\Desktop\smartcare-check> cd project
+(.venv) PS C:\Users\Benjamin\Desktop\smartcare-check\project> python -m pip install -r requirements-dev.txt
+Collecting pytest==8.3.5 (from -r requirements-dev.txt (line 1))
+  Downloading pytest-8.3.5-py3-none-any.whl (343 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 343.6/343.6 kB 4.3 MB/s eta 0:00:00
+Collecting colorama (from pytest==8.3.5->-r requirements-dev.txt (line 1))
+  Using cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Collecting iniconfig (from pytest==8.3.5->-r requirements-dev.txt (line 1))
+  Using cached iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+Collecting packaging (from pytest==8.3.5->-r requirements-dev.txt (line 1))
+  Using cached packaging-26.3-py3-none-any.whl (129 kB)
+Collecting pluggy<2,>=1.5 (from pytest==8.3.5->-r requirements-dev.txt (line 1))
+  Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+Installing collected packages: pluggy, packaging, iniconfig, colorama, pytest
+Successfully installed colorama-0.4.6 iniconfig-2.3.1 packaging-26.3 pluggy-1.7.0 pytest-8.3.5
+
+[notice] A new release of pip is available: 23.1.2 -> 26.3
+[notice] To update, run: python.exe -m pip install --upgrade pip
+(.venv) PS C:\Users\Benjamin\Desktop\smartcare-check\project> python main.py
+A1: P1 with DR1, 2026-10-01 09:00, scheduled
+Session-only data: records are lost on exit.
+(.venv) PS C:\Users\Benjamin\Desktop\smartcare-check\project> python main.py --interactive
+============================================================
+                         SMARTCARE
+                    Interactive Console
+============================================================
+Session data is temporary and will be discarded when you exit.
+
+MAIN MENU
+------------------------------------------------------------
+[1] Register patient
+[2] Find patient
+[3] Register practitioner
+[4] Find practitioner
+[5] Book appointment
+[6] Cancel appointment
+[7] Find appointment
+[8] List practitioner appointments
+[0] Exit
+------------------------------------------------------------
+Select an option: 0
+
+Goodbye. Session data discarded.
+(.venv) PS C:\Users\Benjamin\Desktop\smartcare-check\project> python -m pytest -q
+.........................................................                  [100%]
+57 passed in 0.34s
+(.venv) PS C:\Users\Benjamin\Desktop\smartcare-check\project>
